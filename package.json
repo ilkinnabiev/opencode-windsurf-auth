@@ -20,12 +20,12 @@
   "author": "Ilkin Nabiev <ilkin.nabiev@bk.ru>",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mrnabiev/opencode-windsurf-auth.git"
+    "url": "git+https://github.com/ilkinnabiev/opencode-windsurf-auth.git"
   },
   "bugs": {
-    "url": "https://github.com/mrnabiev/opencode-windsurf-auth/issues"
+    "url": "https://github.com/ilkinnabiev/opencode-windsurf-auth/issues"
   },
-  "homepage": "https://github.com/mrnabiev/opencode-windsurf-auth#readme",
+  "homepage": "https://github.com/ilkinnabiev/opencode-windsurf-auth#readme",
   "keywords": [
     "opencode",
     "opencode-plugin",

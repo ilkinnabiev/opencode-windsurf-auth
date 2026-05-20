@@ -34,7 +34,7 @@ Manual install, three steps. The plugin is registered in OpenCode via the `<name
 ```bash
 # Pick any directory; ~/.opencode/plugins/ keeps things tidy.
 mkdir -p ~/.opencode/plugins
-git clone https://github.com/mrnabiev/opencode-windsurf-auth.git \
+git clone https://github.com/ilkinnabiev/opencode-windsurf-auth.git \
   ~/.opencode/plugins/opencode-windsurf-auth
 
 cd ~/.opencode/plugins/opencode-windsurf-auth
@@ -358,7 +358,7 @@ Yes for most models. Avoid `glm-5.1` and deprecated `gpt-4o-mini` family in agen
 ## Development
 
 ```bash
-git clone https://github.com/mrnabiev/opencode-windsurf-auth.git
+git clone https://github.com/ilkinnabiev/opencode-windsurf-auth.git
 cd opencode-windsurf-auth
 npm install
 npm run typecheck    # tsc --noEmit
