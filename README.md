@@ -395,12 +395,6 @@ This plugin would not exist without the work of the [**WindsurfAPI**](https://gi
 
 This plugin is purely the OpenCode-side adapter: it speaks HTTP to a WindsurfAPI proxy, picks the right endpoint per model, and threads OpenCode's auth flow through to the proxy's `/auth/login`. All credit for the heavy lifting belongs upstream — please star [`dwgx/WindsurfAPI`](https://github.com/dwgx/WindsurfAPI) if you find this useful.
 
-It also stands on the shoulders of:
-
-- **[OpenCode](https://opencode.ai/)** — the terminal coding agent and plugin host this targets.
-- **[`@ai-sdk/openai-compatible`](https://www.npmjs.com/package/@ai-sdk/openai-compatible)** — the Vercel AI SDK provider whose `fetch` hook gives us a clean per-request interception point.
-- **[`numman-ali/opencode-openai-codex-auth`](https://github.com/numman-ali/opencode-openai-codex-auth)** — reference implementation for OpenCode auth-plugin patterns (loader shape, request/response interception, OAuth flow handling).
-
 ## License
 
 MIT — see [`LICENSE`](./LICENSE).
