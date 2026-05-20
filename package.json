@@ -1,0 +1,70 @@
+{
+  "name": "opencode-windsurf-auth",
+  "version": "0.1.0",
+  "description": "Windsurf (Cascade) provider for OpenCode — uses a local or remote WindsurfAPI proxy to expose 100+ Windsurf models (Claude, GPT-5.x, Gemini, Kimi, GLM, Grok, …) as a first-class provider in the OpenCode TUI.",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./helpers": {
+      "types": "./dist/helpers.d.ts",
+      "default": "./dist/helpers.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "license": "MIT",
+  "author": "Ilkin Nabiev <ilkin.nabiev@bk.ru>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mrnabiev/opencode-windsurf-auth.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mrnabiev/opencode-windsurf-auth/issues"
+  },
+  "homepage": "https://github.com/mrnabiev/opencode-windsurf-auth#readme",
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "windsurf",
+    "codeium",
+    "cascade",
+    "auth",
+    "provider",
+    "claude",
+    "gpt-5",
+    "anthropic"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "watch": "tsc --watch"
+  },
+  "files": [
+    "dist/",
+    "config/",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "peerDependencies": {
+    "@opencode-ai/plugin": "^1.15.0"
+  },
+  "devDependencies": {
+    "@opencode-ai/plugin": "^1.15.5",
+    "@opencode-ai/sdk": "^1.15.5",
+    "@types/node": "^24.6.2",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "jsonc-parser": "^3.3.1"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -1,0 +1,8 @@
+node_modules/
+src/
+test/
+*.ts
+!dist/**/*.d.ts
+tsconfig.json
+*.tsbuildinfo
+.DS_Store
