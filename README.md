@@ -27,7 +27,7 @@ If you don't have a Pro Windsurf subscription, **install this plugin only to tes
 
 ## Install
 
-Manual install, three steps. The plugin is registered in OpenCode via the `<name>@file://<dir>` pattern (the same mechanism OpenCode itself uses for `oh-my-opencode` and other local plugins) — no npm publish required.
+Manual install, three steps. The plugin is registered in OpenCode via the standard `<name>@file://<dir>` pattern that OpenCode supports for local plugins — no npm publish required.
 
 ### 1. Clone and build
 
@@ -44,7 +44,7 @@ npm run build
 
 ### 2. Register the plugin in OpenCode
 
-Open `~/.config/opencode/opencode.jsonc` and add to the `plugin` array:
+Open `~/.config/opencode/opencode.json` and add to the `plugin` array:
 
 ```jsonc
 {
@@ -62,10 +62,10 @@ Replace `/Users/YOU/` with your real home path (`echo $HOME`).
 
 ### 3. Add the Windsurf provider
 
-Copy one of the presets from this repo into the `provider` section of your `opencode.jsonc`:
+Copy one of the presets from this repo into the `provider` section of your `opencode.json`:
 
-- [`config/opencode-modern.json`](./config/opencode-modern.json) — full curated list (~20 models incl. Claude, GPT-5.x, Gemini, Kimi, GLM, Grok).
-- [`config/opencode-claude-only.json`](./config/opencode-claude-only.json) — Claude-only preset, best tool-call stability.
+- [`config/opencode-modern.json`](./config/opencode-modern.json) — curated 25-model list (Claude 4.5/4.6/4.7, GPT-5.x, Gemini 2.5/3.0, Kimi, GLM, Grok, SWE).
+- [`config/opencode-claude-only.json`](./config/opencode-claude-only.json) — Claude-only preset (Sonnet 4.6, Opus 4.6/4.7, Haiku 4.5). Best tool-call stability.
 
 Minimum viable provider block:
 
@@ -134,6 +134,12 @@ HOST=127.0.0.1                    # loopback only — required for open mode
 PORT=3003
 API_KEY=                          # empty = open mode (no proxy auth)
 DASHBOARD_PASSWORD=<your-choice>  # required only if you want the dashboard
+
+# Language Server binary (installed by `bash install-ls.sh`). Path varies by OS:
+#   macOS Apple Silicon: ~/.windsurf/language_server_macos_arm
+#   macOS Intel:         ~/.windsurf/language_server_macos_x64
+#   Linux x64:           ~/.windsurf/language_server_linux_x64
+#   Windows x64:         ~/.windsurf/language_server_windows_x64.exe
 LS_BINARY_PATH=~/.windsurf/language_server_macos_arm
 ```
 
@@ -192,13 +198,13 @@ opencode
 | GPT taste | `gpt-5.2` / `gpt-5.2-codex-medium` | Works, but tool-call reliability is lower than Claude. |
 | Reasoning experiments | `gpt-5.2-xhigh`, `claude-opus-4-7-xhigh` | When you want the model to actually think. |
 
-**Avoid in agent loops** (e.g. `opencode run`): `glm-5.1` (occasional empty responses), `gpt-4o-mini` / `gpt-4.1-mini` (deprecated upstream), anything tagged `legacy` in `GET /v1/models`.
+**Avoid in agent loops** (e.g. `opencode run`): `glm-4.7` (occasional empty responses break the loop), `gpt-4o-mini` / `gpt-4.1-mini` (deprecated upstream; only listed in Windsurf Free entitlements but no longer routable), and anything tagged `legacy` in `GET /v1/models`.
 
 ---
 
 ## Configuration
 
-Everything lives under `provider.windsurf.options` in `~/.config/opencode/opencode.jsonc`:
+Everything lives under `provider.windsurf.options` in `~/.config/opencode/opencode.json`:
 
 ```jsonc
 "windsurf": {
@@ -302,7 +308,7 @@ The Windsurf desktop app isn't installed or you're signed out. The plugin checks
 
 Fix: install Windsurf desktop and sign in once, or use "paste auth token".
 
-### Sign-in succeeds, but every model says "недоступна в пуле" (`model_not_entitled`)
+### Sign-in succeeds, but every model returns `model_not_entitled` ("недоступна в пуле")
 
 You're on the **Free** Windsurf plan. See the warning at the top — Free is effectively non-functional through any API surface. Upgrade to Pro.
 
@@ -324,7 +330,7 @@ export WINDSURFAPI_DASHBOARD_PASSWORD=<your DASHBOARD_PASSWORD>
 
 ### `WARN: ... HTTP 429 IP banned for Ns`
 
-The proxy's per-IP bruteforce counter triggered because something hit the dashboard with the wrong password too many times (often: repeated OpenCode restarts before the dashboard password was set up). Restart the proxy to clear the in-memory ban table; the plugin will then back off for 12h and not retry. From v0.1+ the plugin won't even attempt the push without a password configured, so this becomes a one-time-only issue.
+The proxy's per-IP bruteforce counter triggered because something hit the dashboard with the wrong password too many times (often: repeated OpenCode restarts before the dashboard password was set up). Restart the proxy to clear the in-memory ban table; the plugin will then back off for 12h and not retry. This shouldn't happen with the current plugin — it skips the push entirely when no `dashboardPassword` is configured.
 
 ### Tool calls are flaky / model narrates "Let me check that..."
 
@@ -351,7 +357,7 @@ Same answer as the underlying WindsurfAPI project: **it's reverse-engineered, no
 Because then this plugin would dictate one specific deployment shape (localhost? Docker? VPS?). WindsurfAPI already owns its own lifecycle excellently (LS supervision, account pool, dashboard, self-update). The plugin is just the OpenCode-specific glue.
 
 **Q: Will this work with `opencode run` (non-interactive mode)?**
-Yes for most models. Avoid `glm-5.1` and deprecated `gpt-4o-mini` family in agent loops — they sometimes return empty responses that break the loop.
+Yes for most models. Avoid `glm-4.7` and the deprecated `gpt-4o-mini` family in agent loops — they sometimes return empty responses that break the loop.
 
 ---
 
@@ -364,9 +370,10 @@ npm install
 npm run typecheck    # tsc --noEmit
 npm run build        # tsc → dist/
 
-# Smoke-test against a running proxy:
+# Smoke-test against a running proxy. Note: helpers are at dist/helpers.js
+# (index.ts deliberately exports only the plugin factory — see note below).
 WINDSURF_API_URL=http://localhost:3003 node -e \
-  "import('./dist/index.js').then(({locateProxy}) => locateProxy().then(console.log))"
+  "import('./dist/helpers.js').then(({ locateProxy }) => locateProxy().then(console.log))"
 ```
 
 Helpers (probe / login functions usable from your own scripts) are exposed via `opencode-windsurf-auth/helpers`:
