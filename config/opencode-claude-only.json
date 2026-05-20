@@ -1,0 +1,37 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": [
+    "opencode-windsurf-auth"
+  ],
+  "provider": {
+    "windsurf": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Windsurf (Claude only)",
+      "options": {
+        "baseURL": "http://localhost:3003/v1"
+      },
+      "models": {
+        "claude-sonnet-4.6": {
+          "name": "Claude Sonnet 4.6",
+          "limit": { "context": 200000, "output": 32768 },
+          "modalities": { "input": ["text", "image"], "output": ["text"] }
+        },
+        "claude-opus-4.6": {
+          "name": "Claude Opus 4.6",
+          "limit": { "context": 200000, "output": 32768 },
+          "modalities": { "input": ["text", "image"], "output": ["text"] }
+        },
+        "claude-opus-4-7-medium": {
+          "name": "Claude Opus 4.7",
+          "limit": { "context": 200000, "output": 32768 },
+          "modalities": { "input": ["text", "image"], "output": ["text"] }
+        },
+        "claude-4.5-haiku": {
+          "name": "Claude Haiku 4.5",
+          "limit": { "context": 200000, "output": 16384 },
+          "modalities": { "input": ["text", "image"], "output": ["text"] }
+        }
+      }
+    }
+  }
+}
