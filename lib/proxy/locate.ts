@@ -24,6 +24,7 @@
 import { DEFAULT_PROXY_CANDIDATES } from "../constants.js";
 import { log } from "../logger.js";
 import type { LocatedProxy, PluginOptions } from "../types.js";
+import { logProxyCompat } from "./compat.js";
 import { tryHealthcheck } from "./health.js";
 
 export class ProxyNotFoundError extends Error {
@@ -32,13 +33,12 @@ export class ProxyNotFoundError extends Error {
       `No reachable WindsurfAPI proxy.\n` +
         `Tried: ${candidates.join(", ")}\n\n` +
         `Quick fixes:\n` +
-        `  • Set 'baseURL' in opencode.jsonc -> provider.windsurf.options\n` +
+        `  • Set 'baseURL' in opencode.json -> provider.windsurf.options\n` +
         `  • Or export WINDSURF_API_URL=http://your-host:3003\n` +
         `  • Or run the WindsurfAPI proxy yourself:\n` +
         `      git clone https://github.com/dwgx/WindsurfAPI && cd WindsurfAPI\n` +
-        `      bash setup.sh && node src/index.js\n` +
-        `  • Or use the bundled wizard:\n` +
-        `      npx opencode-windsurf-auth setup`,
+        `      git checkout v2.0.96     # last version verified by this plugin\n` +
+        `      bash install-ls.sh && node src/index.js`,
     );
   }
 }
@@ -87,6 +87,7 @@ export async function locateProxy(options: PluginOptions = {}): Promise<LocatedP
             ? ` — ${health.body.accounts.active} active account(s)`
             : ""),
       );
+      logProxyCompat(health.body.version);
       return { url, health: health.body };
     }
     log.debug(`locateProxy: ${url} not WindsurfAPI (${health.error ?? "no health body"})`);

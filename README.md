@@ -1,6 +1,12 @@
 # opencode-windsurf-auth
 
+[![Tested against WindsurfAPI v2.0.96](https://img.shields.io/badge/WindsurfAPI-v2.0.96-blue?logo=github&logoColor=white)](https://github.com/dwgx/WindsurfAPI/releases/tag/v2.0.96)
+[![OpenCode plugin](https://img.shields.io/badge/OpenCode-plugin-black)](https://opencode.ai/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
+
 > Use Windsurf's 130+ AI models (Claude Sonnet/Opus 4.x, GPT-5.x, Gemini 3, Kimi, GLM, Grok, …) inside [OpenCode](https://opencode.ai/) through your own [WindsurfAPI](https://github.com/dwgx/WindsurfAPI) proxy.
+
+> **Upstream pin:** this plugin is E2E-verified against [`dwgx/WindsurfAPI@v2.0.96`](https://github.com/dwgx/WindsurfAPI/releases/tag/v2.0.96). Other versions usually work, but the plugin emits a warning on connect if the proxy is older than `v2.0.96` or a major version ahead. See [Compatibility](#compatibility-with-windsurfapi) below.
 
 A thin **companion plugin** — it does not embed or supervise WindsurfAPI. You run the proxy however you like (`node src/index.js`, Docker, PM2, …) and the plugin talks to it over HTTP, adding:
 
@@ -93,6 +99,10 @@ The plugin **does not start** the proxy for you — that's intentional (the prox
 ```bash
 git clone https://github.com/dwgx/WindsurfAPI.git ~/.windsurfapi
 cd ~/.windsurfapi
+# Pin to the version this plugin was last E2E-verified against.
+# (Skip to use upstream HEAD — the plugin will log a one-line compat
+#  warning on connect if it detects a version it hasn't been tested on.)
+git checkout v2.0.96
 # Install the Language Server binary it needs (one-time, ~250MB):
 bash install-ls.sh
 # Configure (see ".env" template below)
@@ -243,6 +253,57 @@ Everything lives under `provider.windsurf.options` in `~/.config/opencode/openco
 | `WINDSURFAPI_KEY` | Proxy `API_KEY` used during sign-in when the proxy is **not** in open mode. Lets the "Sign in with Windsurf" methods stay prompt-free. (Alias: `WINDSURF_API_KEY`.) |
 | `WINDSURFAPI_DASHBOARD_PASSWORD` | Proxy `DASHBOARD_PASSWORD`. Required only for the optional system-prompt push. Falls back to bare `DASHBOARD_PASSWORD` so you can reuse the proxy's `.env` value directly. |
 | `WINDSURF_AUTH_DEBUG=1` | Enable debug log lines on stderr (request URLs, shrink stats, cache_control diagnostics, etc.). |
+
+---
+
+## Compatibility with WindsurfAPI
+
+This plugin is a thin adapter over the upstream [`dwgx/WindsurfAPI`](https://github.com/dwgx/WindsurfAPI) proxy, so a proxy update **can** break it if the upstream changes the endpoint contract. To make breakage loud and recoverable, the plugin:
+
+- Hardcodes the **last verified upstream version** as a constant in `lib/constants.ts` (`SUPPORTED_PROXY.LAST_VERIFIED`). Currently `v2.0.96`.
+- On every `locateProxy()` call, reads `/health.version` from the proxy and compares it against that constant.
+- Emits exactly **one log line per session** when it detects a version it hasn't been verified against:
+
+| Detected proxy version | Plugin reaction | Log level |
+|---|---|---|
+| Equal to `LAST_VERIFIED` | Silent — only the regular "connected to WindsurfAPI at … (vX.Y.Z)" line | info |
+| Newer minor / patch (e.g. `v2.0.97`, `v2.1.0`) | "Newer than verified — should be fine, file an issue if anything breaks" | info |
+| Older than `MIN` (e.g. `v2.0.85`) | "Older than verified — some endpoints may behave differently. Upgrade to vX.Y.Z." | warn |
+| Newer major (e.g. `v3.0.0`) | "MAJOR version ahead — breaking changes likely. Pin to vX.Y.Z." | warn |
+| Missing / unparseable | Silent (already validated as WindsurfAPI via the `provider` marker on `/health`) | — |
+
+The plugin **never blocks** on a version mismatch — upstream may legitimately fix something in a minor that we haven't re-verified yet, and hard-blocking would force users to wait for a plugin release just to use a proxy patch.
+
+### If a request starts failing after a proxy update
+
+1. Check the plugin's startup log — look for the `(vX.Y.Z)` line and the compat warning. Most likely cause: the proxy was bumped past what this plugin understands.
+2. Pin the proxy to the last verified version (no plugin reinstall needed):
+
+```bash
+cd ~/.windsurfapi
+git fetch --tags
+git checkout v2.0.96
+npm install   # only if package.json moved
+# restart the proxy:
+lsof -ti:3003 | xargs kill 2>/dev/null
+node src/index.js
+```
+
+3. If the failure is on a *minor* bump and looks specific (e.g. a single model started returning empty responses, or a header was renamed), please [open an issue](https://github.com/ilkinnabiev/opencode-windsurf-auth/issues) with the proxy version and the failing request. Bumping `SUPPORTED_PROXY.LAST_VERIFIED` in the plugin is then a 1-line PR after the contract is re-verified.
+
+### Plugin → proxy endpoint contract (what we rely on)
+
+Anyone forking the upstream proxy needs to preserve these endpoints / payload shapes:
+
+| Endpoint | Method | What we read / send |
+|---|---|---|
+| `/health` | GET | `{ provider, version, accounts.active }` — used for locate + compat check |
+| `/v1/models` | GET | OpenAI-style models list — used by `@ai-sdk/openai-compatible` |
+| `/v1/chat/completions` | POST | OpenAI chat semantics (streaming) — non-Claude requests |
+| `/v1/messages` | POST | Anthropic semantics with `tool_use` blocks (streaming) — Claude requests |
+| `/auth/login` | POST | Accepts either `{ apiKey }` or `{ token }` payloads |
+| `/auth/accounts` | GET | `{ accounts: [...] }` — used during sign-in flows and for open-mode detection |
+| `/dashboard/api/system-prompts` | PUT | `X-Dashboard-Password` header + `{ communicationWithTools, communicationNoTools }` body — optional, soft-skipped on 401 |
 
 ---
 

@@ -20,6 +20,35 @@ export const DEFAULT_PROXY_CANDIDATES = [
 /** WindsurfAPI emits this exact string in `GET /health.provider`. */
 export const PROXY_PROVIDER_MARKER = "WindsurfAPI";
 
+/**
+ * Upstream WindsurfAPI version compatibility window.
+ *
+ * The plugin contract relies on these proxy endpoints / payload shapes:
+ *   • GET  /health                    — { provider, version, accounts.active }
+ *   • GET  /v1/models                 — OpenAI-style models list
+ *   • POST /v1/chat/completions       — OpenAI chat semantics
+ *   • POST /v1/messages               — Anthropic messages semantics (tool_use blocks)
+ *   • POST /auth/login                — accepts { apiKey } and { token } payloads
+ *   • GET  /auth/accounts             — { accounts: [...] }
+ *   • PUT  /dashboard/api/system-prompts (X-Dashboard-Password header)
+ *
+ * If upstream bumps `MAJOR` or removes/renames any of the above, this
+ * plugin will start failing at runtime. We bake in the version we last
+ * verified end-to-end so we can warn the user when their proxy is older
+ * (likely-missing endpoints) or significantly newer (possibly-breaking
+ * changes we haven't audited yet).
+ *
+ * Update both constants whenever you E2E-test against a new upstream tag.
+ */
+export const SUPPORTED_PROXY = {
+  /** Lowest semver we have verified the plugin works against. */
+  MIN: "2.0.96",
+  /** Highest semver we have verified the plugin works against. */
+  LAST_VERIFIED: "2.0.96",
+  /** Display URL used in warning messages and README references. */
+  TAG_URL: "https://github.com/dwgx/WindsurfAPI/releases/tag/v2.0.96",
+} as const;
+
 /** Path inside `~/.opencode/` where we keep our state. */
 export const PLUGIN_STATE_DIRNAME = "windsurf-auth";
 

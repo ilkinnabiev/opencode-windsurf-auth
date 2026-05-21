@@ -15,5 +15,16 @@ export {
 } from "./lib/auth/token.js";
 export { locateProxy, ProxyNotFoundError } from "./lib/proxy/locate.js";
 export { tryHealthcheck, waitUntilHealthy } from "./lib/proxy/health.js";
+export {
+  evaluateProxyCompat,
+  logProxyCompat,
+  parseSemver,
+  compareSemver,
+} from "./lib/proxy/compat.js";
 export { openaiToAnthropic } from "./lib/request/convert.js";
-export { PROVIDER_ID, PROXY_PATHS, DEFAULT_PROXY_CANDIDATES } from "./lib/constants.js";
+export {
+  PROVIDER_ID,
+  PROXY_PATHS,
+  DEFAULT_PROXY_CANDIDATES,
+  SUPPORTED_PROXY,
+} from "./lib/constants.js";
